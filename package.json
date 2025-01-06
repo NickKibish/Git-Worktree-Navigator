@@ -11,10 +11,10 @@
   "license": "MIT",
   "commands": [
     {
-      "name": "add-project",
+      "name": "index",
       "title": "Add Project",
       "description": "Add Git repositories to your project list for quick access and streamlined worktree management. Specify the root directory of your Git project to include it in the extension. Once added, you can easily select the project and manage its worktrees.",
-      "mode": "no-view"
+      "mode": "view"
     }
   ],
   "dependencies": {
