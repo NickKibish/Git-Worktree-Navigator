@@ -2,6 +2,7 @@ import { Action, Icon, Form, ActionPanel, useNavigation } from "@raycast/api";
 import { Project } from "../types";
 import { useState } from "react";
 import { basename } from "path";
+import { existsSync } from "fs";
 
 type OnProjectSelected = (projectName: string, projectPath: string) => void;
 
@@ -18,17 +19,23 @@ export function AddProjectForm(props: { onProjectAdded: OnProjectSelected }) {
             <Action.SubmitForm
                 title="Add Project"
                 onSubmit={(values: { project: string, directory: string }) => {
+                    var hasError = false;
                     if (!values.project || values.project.length === 0) {
                         setProjectNameError("Project name is required");
+                        hasError = true;
                     }
 
                     if (!values.directory || values.directory.length === 0) {
                         setProjectPathError("Directory is required");
+                        hasError = true;
                     }
 
-                    if (!values.project || values.project.length === 0 || !values.directory || values.directory.length === 0) {
+                    if (hasError) {
                         return;
                     }
+
+                    console.log(`Adding project ${values.project} at ${values.directory}`);
+
                     // Add project to the list
                     props.onProjectAdded(values.project, values.directory);
                     pop();
@@ -67,6 +74,13 @@ export function AddProjectForm(props: { onProjectAdded: OnProjectSelected }) {
                     if (!projectName || projectName.length === 0) {
                         setProjectName(basename(selectedPath));
                     }
+
+                    const gitPath = `${selectedPath}/.git`;
+                    if (!existsSync(gitPath)) {
+                        setProjectPathError("The selected directory is not a git repository");
+                    }
+                } else {
+                    setProjectPath("");
                 }
             }}
             error={projectPathError}
