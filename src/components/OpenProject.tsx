@@ -1,10 +1,14 @@
 import { Action, Icon, Form, ActionPanel, useNavigation } from "@raycast/api";
+import { useLocalStorage } from "@raycast/utils";
 import { Project } from "../types";
 import { useState } from "react";
 import { basename } from "path";
 import { existsSync } from "fs";
+import { nanoid } from "nanoid";
+
 
 type OnProjectSelected = (projectName: string, projectPath: string) => void;
+type OnProjectAdded = (project: Project) => void;
 
 export function AddProjectForm(props: { onProjectAdded: OnProjectSelected }) {
     const { pop } = useNavigation();
@@ -89,14 +93,23 @@ export function AddProjectForm(props: { onProjectAdded: OnProjectSelected }) {
     </Form>
 }
 
-export function AddProjectAction(props: { onCreate: OnProjectSelected }) {
+export function AddProjectAction(props: { onCreate: OnProjectAdded }) {
     return <Action.Push
         title="Add Project"
         icon={Icon.Plus}
         shortcut={{ modifiers: ["cmd"], key: "n" }}
         target={
             <AddProjectForm
-                onProjectAdded={props.onCreate} />
+                onProjectAdded={
+                    (projectName: string, projectPath: string) => {
+                        const newProject: Project = {
+                            id: nanoid(),
+                            path: projectPath,
+                            name: projectName
+                        };
+
+                        props.onCreate(newProject);
+                    }} />
         }
     />
 }

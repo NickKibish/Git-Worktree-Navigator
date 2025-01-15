@@ -4,10 +4,22 @@ import { exec } from "child_process";
 import { useEffect } from "react";
 import { AddProjectAction } from "./OpenProject";
 
+type OnOpenProject = (project: Project) => void;
+
+function openProject(props: { onOpenProject: OnOpenProject }) {
+    return <ActionPanel>
+        <AddProjectAction
+            onCreate={(project) => {
+                props.onOpenProject(project);
+            }}
+        />
+    </ActionPanel>
+}
 
 export function EmptyView(props: {
     projects: Project[];
     searchText: string;
+    onOpenProject: OnOpenProject;
 }) {
     if (props.projects.length === 0) {
         return (
@@ -16,12 +28,7 @@ export function EmptyView(props: {
                 title="Add your first project"
                 description="Add a new git repository to start tracking your projects."
                 actions={
-                    <ActionPanel>
-                        <AddProjectAction
-                            onCreate={(projectName: string, projectPath: string) => {
-                            }}
-                        />
-                    </ActionPanel>
+                    openProject(props)
                 }
             />
         )
@@ -32,6 +39,9 @@ export function EmptyView(props: {
                 icon="🔍"
                 title="No Matching Projects"
                 description={'No projects match your search query.\nAdd a new git repository to see it here.'}
+                actions={
+                    openProject(props)
+                }
             />
         )
     }

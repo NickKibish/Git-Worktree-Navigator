@@ -15,7 +15,21 @@ export default function Command() {
       searchText={searchText}
       onSearchTextChange={setSearchText}
     >
-      <EmptyView projects={projects ?? []} searchText={searchText} />
+      <EmptyView
+        projects={projects ?? []}
+        searchText={searchText}
+        onOpenProject={(project) => {
+          const newProjects = [...(projects ?? []), project];
+          setProjects(newProjects);
+        }}
+      />
+      {(projects ?? []).map((project, index) => (
+        <List.Item
+          key={project.id}
+          title={project.name ?? project.path}
+          icon="📂"
+        />
+      ))}
     </List>
   );
 }
