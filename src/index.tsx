@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { List } from "@raycast/api";
+import { ActionPanel, Action, List } from "@raycast/api";
 import { useLocalStorage } from "@raycast/utils";
 import { Project } from "./types"
 import { EmptyView } from "./components/EmptyView";
+import { WorktreeList } from "./components/WorktreeList";
+import { AddProjectAction } from "./components/OpenProject";
 
 export default function Command() {
   const [searchText, setSearchText] = useState("");
@@ -25,9 +27,40 @@ export default function Command() {
       />
       {(projects ?? []).map((project, index) => (
         <List.Item
-          key={project.id}
+          key={project.path}
           title={project.name ?? project.path}
           icon="📂"
+          actions={
+            <ActionPanel>
+              <ActionPanel.Section>
+                <Action.Push
+                  title="View Project"
+                  target={
+                    <WorktreeList
+                      project={project}
+                    />
+                  }
+                />
+              </ActionPanel.Section>
+              <ActionPanel.Section>
+                <AddProjectAction 
+                  onCreate={(project) => {
+                    const newProjects = [...(projects ?? []), project];
+                    setProjects(newProjects);
+                  }}
+                />
+                <Action
+                  icon="🗑"
+                  title="Remove Project"
+                  style={Action.Style.Destructive}
+                  onAction={() => {
+                    const newProjects = (projects ?? []).filter((p) => p.path !== project.path);
+                    setProjects(newProjects);
+                  }}
+                />
+              </ActionPanel.Section>
+            </ActionPanel>
+          }
         />
       ))}
     </List>

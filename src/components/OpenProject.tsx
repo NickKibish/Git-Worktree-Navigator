@@ -4,8 +4,6 @@ import { Project } from "../types";
 import { useState } from "react";
 import { basename } from "path";
 import { existsSync } from "fs";
-import { nanoid } from "nanoid";
-
 
 type OnProjectSelected = (projectName: string, projectPath: string) => void;
 type OnProjectAdded = (project: Project) => void;
@@ -103,9 +101,9 @@ export function AddProjectAction(props: { onCreate: OnProjectAdded }) {
                 onProjectAdded={
                     (projectName: string, projectPath: string) => {
                         const newProject: Project = {
-                            id: nanoid(),
                             path: projectPath,
-                            name: projectName
+                            name: projectName,
+                            favoriteWorktree: undefined
                         };
 
                         props.onCreate(newProject);
