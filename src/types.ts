@@ -8,3 +8,10 @@ export interface Worktree {
     path: string;
     project: Project;
 }
+
+export enum WorktreeType {
+    feature = "feature",
+    bugfix = "bugfix",
+    release = "release",
+    hotfix = "hotfix"
+}
