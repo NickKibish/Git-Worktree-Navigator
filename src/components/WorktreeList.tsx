@@ -3,6 +3,7 @@ import { Worktree, Project, WorktreeType } from "../types";
 import { usePromise } from "@raycast/utils";
 
 import { getProjectWorktrees, worktreeType, worktreeName, jiraIssue, iconForType, getCurrentBranch } from "../utils/gitUtil";
+import { OpenActionPanel } from "./Actions";
 import { isStringObject } from "util/types";
 
 type WorktreesAndBranch = {
@@ -24,6 +25,8 @@ export function WorktreeList(props: { project: Project }) {
         [props.project]
     )
 
+    const stringPath = "" + props.project.path;
+
     return (
         <List
             isLoading={isLoading}
@@ -34,17 +37,7 @@ export function WorktreeList(props: { project: Project }) {
                 subtitle={data?.[0] ?? "No branch"}
                 icon="📁"
                 actions={
-                    <ActionPanel>
-                        <Action.Open
-                            title="Open in Finder"
-                            target={"file://" + props.project.path}
-                        />
-                        <Action.Open
-                            title="Open in Terminal"
-                            target={"file://" + props.project.path}
-                            application="kitty"
-                        />
-                    </ActionPanel>
+                    <OpenActionPanel path={stringPath} />
                 }
             />
             {(data?.[1] ?? []).map((worktree, index) => (
@@ -60,6 +53,8 @@ function WorktreeListItem(props: { worktree: Worktree }) {
     const name = worktreeName(worktree.path);
     const issue = jiraIssue(worktree.path);
 
+    const stringPath = "" + worktree.path;
+
     return (
         <List.Item
             key={worktree.path}
@@ -69,6 +64,9 @@ function WorktreeListItem(props: { worktree: Worktree }) {
                 { text: type }
             ]}
             icon={type ? iconForType(type) : "📂"}
+            actions={
+                <OpenActionPanel path={stringPath} />
+            }
         />
     );
 }
