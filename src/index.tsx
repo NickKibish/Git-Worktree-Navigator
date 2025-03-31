@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ActionPanel, Action, List } from "@raycast/api";
 import { useLocalStorage } from "@raycast/utils";
-import { Project } from "./types"
+import { Project } from "./types";
 import { EmptyView } from "./components/EmptyView";
 import { WorktreeList } from "./components/WorktreeList";
 import { AddProjectAction } from "./components/OpenProject";
@@ -33,17 +33,10 @@ export default function Command() {
           actions={
             <ActionPanel>
               <ActionPanel.Section>
-                <Action.Push
-                  title="View Project"
-                  target={
-                    <WorktreeList
-                      project={project}
-                    />
-                  }
-                />
+                <Action.Push title="View Project" target={<WorktreeList project={project} />} />
               </ActionPanel.Section>
               <ActionPanel.Section>
-                <AddProjectAction 
+                <AddProjectAction
                   onCreate={(project) => {
                     const newProjects = [...(projects ?? []), project];
                     setProjects(newProjects);
