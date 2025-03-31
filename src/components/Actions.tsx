@@ -5,9 +5,9 @@ import path from "path";
 export function OpenActionPanel(props: { path: string }) {
     return (
         <ActionPanel>
+            <OpenInIDEAction path={props.path} />
             <OpenInFinderAction path={props.path} />
             <OpenInTerminalAction path={props.path} />
-            <OpenInIDEAction path={props.path} />
         </ActionPanel>
     );
 }
