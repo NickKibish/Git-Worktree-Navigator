@@ -17,7 +17,7 @@ export function OpenInFinderAction(props: { path: string }) {
 }
 
 export function OpenInTerminalAction(props: { path: string }) {
-  return <Action.Open title="Open in Terminal" target={"file://" + props.path} application="kitty" />;
+  return <Action.Open title="Open in Terminal" target={"file://" + props.path} application="com.googlecode.iterm2" />;
 }
 
 export function OpenInIDEAction(props: { path: string }) {

@@ -8,6 +8,97 @@ import path from "path";
 
 const execAsync = promisify(exec);
 
+export enum ProjectType {
+  Xcode = "xcode",
+  Android = "android",
+  PHP = "php",
+  Other = "other",
+}
+
+export async function detectProjectType(projectPath: string): Promise<ProjectType> {
+  try {
+    console.log(`Detecting project type for: ${projectPath}`);
+    
+    // Check for Xcode projects
+    const xcodeFiles = await Promise.all([
+      fs.readdir(projectPath).then(files => {
+        const hasXcworkspace = files.some(f => f.endsWith('.xcworkspace'));
+        console.log(`Has .xcworkspace: ${hasXcworkspace}`);
+        return hasXcworkspace;
+      }).catch(() => false),
+      fs.readdir(projectPath).then(files => {
+        const hasXcodeproj = files.some(f => f.endsWith('.xcodeproj'));
+        console.log(`Has .xcodeproj: ${hasXcodeproj}`);
+        return hasXcodeproj;
+      }).catch(() => false),
+      fs.access(path.join(projectPath, "Package.swift")).then(() => {
+        console.log('Has Package.swift');
+        return true;
+      }).catch(() => false),
+    ]);
+    if (xcodeFiles.some(exists => exists)) {
+      console.log('Detected Xcode project');
+      return ProjectType.Xcode;
+    }
+
+    // Check for Android projects
+    const androidFiles = await Promise.all([
+      fs.access(path.join(projectPath, "build.gradle")).then(() => {
+        console.log('Has build.gradle');
+        return true;
+      }).catch(() => false),
+      fs.access(path.join(projectPath, "settings.gradle")).then(() => {
+        console.log('Has settings.gradle');
+        return true;
+      }).catch(() => false),
+      fs.access(path.join(projectPath, "app")).then(() => {
+        console.log('Has app directory');
+        return true;
+      }).catch(() => false),
+    ]);
+    if (androidFiles.some(exists => exists)) {
+      console.log('Detected Android project');
+      return ProjectType.Android;
+    }
+
+    // Check for PHP projects
+    const phpFiles = await Promise.all([
+      fs.access(path.join(projectPath, "composer.json")).then(() => {
+        console.log('Has composer.json');
+        return true;
+      }).catch(() => false),
+      fs.readdir(projectPath).then(files => {
+        const hasPhp = files.some(f => f.endsWith('.php'));
+        console.log(`Has .php files: ${hasPhp}`);
+        return hasPhp;
+      }).catch(() => false),
+    ]);
+    if (phpFiles.some(exists => exists)) {
+      console.log('Detected PHP project');
+      return ProjectType.PHP;
+    }
+
+    console.log('No specific project type detected');
+    return ProjectType.Other;
+  } catch (error) {
+    console.error(`Error detecting project type: ${error}`);
+    return ProjectType.Other;
+  }
+}
+
+export function getIDEForProjectType(projectType: ProjectType): { name: string; bundleId: string } {
+  switch (projectType) {
+    case ProjectType.Xcode:
+      return { name: "Xcode", bundleId: "com.apple.dt.Xcode" };
+    case ProjectType.Android:
+      return { name: "Android Studio", bundleId: "com.google.android.studio" };
+    case ProjectType.PHP:
+      return { name: "PhpStorm", bundleId: "com.jetbrains.PhpStorm" };
+    default:
+      return { name: "Visual Studio Code", bundleId: "com.microsoft.VSCode" };
+  }
+}
+
 export async function getProjectWorktrees(project: Project): Promise<Worktree[]> {
   const projectPath = project.path;
   const worktreeDir = `${projectPath}/.git/worktrees`;
@@ -54,6 +145,7 @@ async function createWorktree(path: string, project: Project): Promise<Worktree>
   const worktree: Worktree = {
     path: gitDir,
     project: project,
+    favorite: false,
   };
 
   return worktree;
@@ -163,6 +255,7 @@ export async function addWorktree(
     const worktree: Worktree = {
       path: worktreePath,
       project: project,
+      favorite: false,
     };
 
     return worktree;

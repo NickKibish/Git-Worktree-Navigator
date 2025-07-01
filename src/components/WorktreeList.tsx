@@ -13,6 +13,9 @@ import {
   getCurrentBranch,
   hasUncommittedChanges,
   removeWorktree,
+  detectProjectType,
+  getIDEForProjectType,
+  ProjectType,
 } from "../utils/gitUtil";
 import { WorktreeActionPanel } from "./WorktreeActions";
 
@@ -28,10 +31,22 @@ export function WorktreeList(props: { project: Project }) {
   const [favoriteList] = useState(() => new LinkedList());
   const [worktreeItems] = useState(() => new Map<string, WorktreeItem>());
   const [initialized, setInitialized] = useState(false);
+  const [projectType, setProjectType] = useState<ProjectType | null>(null);
   const { value: storedFavoritePaths, setValue: setStoredFavoritePaths } = useLocalStorage<string[]>(
     `favorite-worktrees-${props.project.path}`,
     []
   );
+
+  useEffect(() => {
+    console.log('Detecting project type for main project...');
+    detectProjectType(props.project.path).then(type => {
+      console.log(`Detected project type: ${type}`);
+      setProjectType(type);
+    });
+  }, [props.project.path]);
+
+  const ide = projectType ? getIDEForProjectType(projectType) : null;
+  console.log(`IDE for project: ${ide?.name ?? 'None'}`);
 
   const { isLoading, data } = usePromise(
     async (project: Project) => {
@@ -161,13 +176,21 @@ export function WorktreeList(props: { project: Project }) {
               <Action.Open
                 title="Open in Terminal"
                 target={"file://" + props.project.path}
-                application="kitty"
+                application="com.googlecode.iterm2"
                 icon={Icon.Terminal}
               />
+              {ide && ide.bundleId !== "com.microsoft.VSCode" && (
+                <Action.Open
+                  title={`Open in ${ide.name}`}
+                  target={props.project.path}
+                  application={ide.bundleId}
+                  icon={Icon.Code}
+                />
+              )}
               <Action.Open
                 title="Open in Visual Studio Code"
                 target={props.project.path}
-                application="code"
+                application="com.microsoft.VSCode"
                 icon={Icon.Code}
               />
             </ActionPanel.Section>
@@ -217,6 +240,13 @@ function WorktreeListItem(props: {
   const type = worktreeType(worktree.path);
   const name = worktreeName(worktree.path);
   const issue = jiraIssue(worktree.path);
+  const [projectType, setProjectType] = useState<ProjectType | null>(null);
+
+  useEffect(() => {
+    detectProjectType(worktree.path).then(setProjectType);
+  }, [worktree.path]);
+
+  const ide = projectType ? getIDEForProjectType(projectType) : null;
 
   return (
     <List.Item
@@ -232,13 +262,21 @@ function WorktreeListItem(props: {
             <Action.Open
               title="Open in Terminal"
               target={"file://" + worktree.path}
-              application="kitty"
+              application="com.googlecode.iterm2"
               icon={Icon.Terminal}
             />
+            {ide && ide.bundleId !== "com.microsoft.VSCode" && (
+              <Action.Open
+                title={`Open in ${ide.name}`}
+                target={worktree.path}
+                application={ide.bundleId}
+                icon={Icon.Code}
+              />
+            )}
             <Action.Open
               title="Open in Visual Studio Code"
               target={worktree.path}
-              application="code"
+              application="com.microsoft.VSCode"
               icon={Icon.Code}
             />
           </ActionPanel.Section>

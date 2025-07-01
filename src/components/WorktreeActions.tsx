@@ -202,7 +202,7 @@ export function WorktreeActionPanel(props: { project: Project; worktree?: Worktr
             <Action.Open
               title="Open in Terminal"
               target={"file://" + props.worktree.path}
-              application="kitty"
+              application="com.googlecode.iterm2"
               icon={Icon.Terminal}
             />
             <Action.Open
@@ -224,7 +224,7 @@ export function WorktreeActionPanel(props: { project: Project; worktree?: Worktr
             <Action.Open
               title="Open in Terminal"
               target={"file://" + props.project.path}
-              application="kitty"
+              application="com.googlecode.iterm2"
               icon={Icon.Terminal}
             />
             <Action.Open
