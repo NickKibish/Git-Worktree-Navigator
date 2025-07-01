@@ -26,6 +26,10 @@ class WorktreeItem extends Item {
 }
 
 export function WorktreeList(props: { project: Project }) {
+  // Handle case where path might be an array due to storage serialization issues
+  const projectPath = Array.isArray(props.project.path) ? props.project.path[0] : props.project.path;
+  const project = { ...props.project, path: projectPath };
+  
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [worktreeList] = useState(() => new LinkedList());
   const [favoriteList] = useState(() => new LinkedList());
@@ -33,17 +37,17 @@ export function WorktreeList(props: { project: Project }) {
   const [initialized, setInitialized] = useState(false);
   const [projectType, setProjectType] = useState<ProjectType | null>(null);
   const { value: storedFavoritePaths, setValue: setStoredFavoritePaths } = useLocalStorage<string[]>(
-    `favorite-worktrees-${props.project.path}`,
+    `favorite-worktrees-${projectPath}`,
     []
   );
 
   useEffect(() => {
     console.log('Detecting project type for main project...');
-    detectProjectType(props.project.path).then(type => {
+    detectProjectType(projectPath).then(type => {
       console.log(`Detected project type: ${type}`);
       setProjectType(type);
     });
-  }, [props.project.path]);
+  }, [projectPath]);
 
   const ide = projectType ? getIDEForProjectType(projectType) : null;
   console.log(`IDE for project: ${ide?.name ?? 'None'}`);
@@ -56,7 +60,7 @@ export function WorktreeList(props: { project: Project }) {
       ]);
       return [currentBranch, worktrees] as [string, Worktree[]];
     },
-    [props.project],
+    [project],
   );
 
   // Initialize the linked lists from worktrees
@@ -165,31 +169,31 @@ export function WorktreeList(props: { project: Project }) {
       }
     >
       <List.Item
-        key={props.project.path}
-        title={props.project.name ?? props.project.path}
+        key={project.path}
+        title={project.name ?? project.path}
         subtitle={data?.[0] ?? "No branch"}
         icon="📁"
         actions={
           <ActionPanel>
             <ActionPanel.Section>
-              <Action.Open title="Open in Finder" target={"file://" + props.project.path} icon={Icon.Finder} />
+              <Action.Open title="Open in Finder" target={"file://" + project.path} icon={Icon.Finder} />
               <Action.Open
                 title="Open in Terminal"
-                target={"file://" + props.project.path}
+                target={"file://" + project.path}
                 application="com.googlecode.iterm2"
                 icon={Icon.Terminal}
               />
               {ide && ide.bundleId !== "com.microsoft.VSCode" && (
                 <Action.Open
                   title={`Open in ${ide.name}`}
-                  target={props.project.path}
+                  target={project.path}
                   application={ide.bundleId}
                   icon={Icon.Code}
                 />
               )}
               <Action.Open
                 title="Open in Visual Studio Code"
-                target={props.project.path}
+                target={project.path}
                 application="com.microsoft.VSCode"
                 icon={Icon.Code}
               />

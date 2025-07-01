@@ -15,23 +15,38 @@ export enum ProjectType {
   Other = "other",
 }
 
-export async function detectProjectType(projectPath: string): Promise<ProjectType> {
+export async function detectProjectType(projectPath: string | string[]): Promise<ProjectType> {
   try {
-    console.log(`Detecting project type for: ${projectPath}`);
+    // Handle case where projectPath might be an array (from FilePicker)
+    let pathString: string;
+    if (Array.isArray(projectPath)) {
+      if (projectPath.length === 0) {
+        console.error(`Empty project path array:`, projectPath);
+        return ProjectType.Other;
+      }
+      pathString = projectPath[0];
+    } else if (typeof projectPath === 'string') {
+      pathString = projectPath;
+    } else {
+      console.error(`Invalid project path type: ${typeof projectPath}, value:`, projectPath);
+      return ProjectType.Other;
+    }
+    
+    console.log(`Detecting project type for: ${pathString}`);
     
     // Check for Xcode projects
     const xcodeFiles = await Promise.all([
-      fs.readdir(projectPath).then(files => {
+      fs.readdir(pathString).then(files => {
         const hasXcworkspace = files.some(f => f.endsWith('.xcworkspace'));
         console.log(`Has .xcworkspace: ${hasXcworkspace}`);
         return hasXcworkspace;
       }).catch(() => false),
-      fs.readdir(projectPath).then(files => {
+      fs.readdir(pathString).then(files => {
         const hasXcodeproj = files.some(f => f.endsWith('.xcodeproj'));
         console.log(`Has .xcodeproj: ${hasXcodeproj}`);
         return hasXcodeproj;
       }).catch(() => false),
-      fs.access(path.join(projectPath, "Package.swift")).then(() => {
+      fs.access(path.join(pathString, "Package.swift")).then(() => {
         console.log('Has Package.swift');
         return true;
       }).catch(() => false),
@@ -43,15 +58,15 @@ export async function detectProjectType(projectPath: string): Promise<ProjectTyp
 
     // Check for Android projects
     const androidFiles = await Promise.all([
-      fs.access(path.join(projectPath, "build.gradle")).then(() => {
+      fs.access(path.join(pathString, "build.gradle")).then(() => {
         console.log('Has build.gradle');
         return true;
       }).catch(() => false),
-      fs.access(path.join(projectPath, "settings.gradle")).then(() => {
+      fs.access(path.join(pathString, "settings.gradle")).then(() => {
         console.log('Has settings.gradle');
         return true;
       }).catch(() => false),
-      fs.access(path.join(projectPath, "app")).then(() => {
+      fs.access(path.join(pathString, "app")).then(() => {
         console.log('Has app directory');
         return true;
       }).catch(() => false),
@@ -63,11 +78,11 @@ export async function detectProjectType(projectPath: string): Promise<ProjectTyp
 
     // Check for PHP projects
     const phpFiles = await Promise.all([
-      fs.access(path.join(projectPath, "composer.json")).then(() => {
+      fs.access(path.join(pathString, "composer.json")).then(() => {
         console.log('Has composer.json');
         return true;
       }).catch(() => false),
-      fs.readdir(projectPath).then(files => {
+      fs.readdir(pathString).then(files => {
         const hasPhp = files.some(f => f.endsWith('.php'));
         console.log(`Has .php files: ${hasPhp}`);
         return hasPhp;
